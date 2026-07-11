@@ -33,6 +33,14 @@
   "isAccessibleForFree": true
 }
 </script>
+<!-- DataFast analytics -->
+<script id="datafast-queue">
+  // Queue goal events fired before the main script finishes loading.
+  window.datafast = window.datafast || function () {
+    (window.datafast.q = window.datafast.q || []).push(arguments);
+  };
+</script>
+<script defer data-website-id="dfid_XvCsB2MzUSfFjv6y31NmM" data-domain="higgscli.com" src="https://datafa.st/js/script.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -617,6 +625,17 @@ cd higgs &amp;&amp; make build</pre>
         setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1600);
       });
     });
+  });
+
+  // DataFast goals: outbound clicks to the GitHub repo and the author's site.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a || !a.href) return;
+    if (a.href.indexOf('github.com') !== -1) {
+      window.datafast('visit_github');
+    } else if (a.href.indexOf('akeemjenkins.com') !== -1) {
+      window.datafast('visit_akeemjenkins');
+    }
   });
 </script>
 
