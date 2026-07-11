@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>higgs — the Proton Mail CLI your agent can actually drive</title>
-<meta name="description" content="An agent-first CLI for Proton Mail. Schema manifest, NDJSON streaming, typed error envelopes, stable exit codes, and 30+ composable commands — classify, search, ask, digest, extract — all local-only via Proton Mail Bridge and Ollama.">
-<meta property="og:title" content="higgs — the Proton Mail CLI your agent can actually drive">
-<meta property="og:description" content="Agent-first CLI for Proton Mail. Schema manifest, NDJSON streaming, typed errors, stable exit codes. Local-only: Bridge + Ollama, no cloud, no telemetry.">
+<title>higgs — AI for your Proton Mail inbox. Nothing leaves your machine.</title>
+<meta name="description" content="A private, local-first AI CLI for Proton Mail. Classification, search, and Q&A run entirely on your machine through Proton Mail Bridge and a local Ollama model — no cloud inference, no API keys, no telemetry. Open source, agent-first by design.">
+<meta property="og:title" content="higgs — AI for your Proton Mail inbox. Nothing leaves your machine.">
+<meta property="og:description" content="Private, local-first AI for Proton Mail. Everything runs on localhost via Bridge + a local Ollama model: no cloud inference, no API keys, no telemetry. Open source.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://higgscli.com">
 <link rel="canonical" href="https://higgscli.com/">
@@ -26,8 +26,8 @@
   "codeRepository": "https://github.com/higgscli/higgs",
   "softwareVersion": "1.1.1",
   "license": "https://www.apache.org/licenses/LICENSE-2.0",
-  "description": "An agent-first CLI for Proton Mail. Schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum — designed to be driven by a language model. Includes a local-only inbox classifier via Proton Mail Bridge and Ollama, plus 30+ composable commands for searching, organizing, summarizing, and extracting structured data from a mailbox.",
-  "keywords": "Proton Mail, CLI, AI agent, NDJSON, schema manifest, email classifier, Ollama, IMAP, Claude, Codex, agent tools",
+  "description": "A private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local Ollama model — no cloud inference, no API keys, no telemetry, credentials kept in the OS keyring. Agent-first by design: schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, with 30+ composable commands.",
+  "keywords": "Proton Mail, privacy, local-first AI, local LLM, CLI, AI agent, NDJSON, schema manifest, email classifier, Ollama, IMAP, Claude, Codex, agent tools, no telemetry",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "Akeem Jenkins", "url": "https://akeemjenkins.com" },
   "isAccessibleForFree": true
@@ -277,7 +277,7 @@
       higgs<span class="tld">cli.com</span>
     </a>
     <nav class="nav-links">
-      <a class="hide-sm" href="#why">Why</a>
+      <a class="hide-sm" href="#private">Privacy</a>
       <a class="hide-sm" href="#contract">Agent contract</a>
       <a class="hide-sm" href="#compose">Pipes</a>
       <a class="hide-sm" href="#commands">Commands</a>
@@ -289,9 +289,9 @@
 
 <div class="hero">
   <div class="wrap">
-    <div class="eyebrow"><span class="pulse"></span> v1.1.1 · Apache-2.0 · Go · local-only</div>
-    <h1>The Proton Mail CLI your agent can <span class="grad">actually drive</span></h1>
-    <p class="lede">higgs is an agent-first CLI for Proton Mail. A schema manifest instead of <code>--help</code> prose, NDJSON on stdout, typed error envelopes, and a stable exit-code enum — designed to be driven by a language model, not parsed by regex.</p>
+    <div class="eyebrow"><span class="pulse"></span> v1.1.1 · open source · zero telemetry · 100% localhost</div>
+    <h1>AI for your inbox. <span class="grad">Nothing leaves your machine.</span></h1>
+    <p class="lede">You chose Proton Mail because your email belongs to you — not to advertisers, data brokers, or model providers. higgs keeps it that way: a local-first AI CLI that classifies, searches, and answers questions about your mail entirely on your own hardware, through Proton Mail Bridge and a local Ollama model. No cloud inference. No API keys. No telemetry.</p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="#install">Get started</a>
       <a class="btn btn-ghost" href="https://github.com/higgscli/higgs">View on GitHub</a>
@@ -300,15 +300,15 @@
       <code><span class="prompt">$ </span><span class="tok">brew</span> install higgscli/higgs/higgs</code>
       <button class="copy-btn" data-copy="brew install higgscli/higgs/higgs">Copy</button>
     </div>
-    <div class="sub-note">Also via <a href="#install">go install or release tarballs</a> · runs entirely on localhost</div>
+    <div class="sub-note">Also via <a href="#install">go install or release tarballs</a> · signed releases · every byte stays on 127.0.0.1</div>
 
     <div class="term">
-      <div class="term-bar"><i></i><i></i><i></i><span>higgs — agent session</span></div>
+      <div class="term-bar"><i></i><i></i><i></i><span>higgs — local agent session · 127.0.0.1</span></div>
       <div class="term-body"><span class="c"># 1. The agent discovers the tool — no prompt-engineered syntax</span>
 <span class="p">$ higgs schema classify</span>
 { <span class="k">"name"</span>: <span class="s">"classify"</span>, <span class="k">"stdout"</span>: <span class="s">"ndjson"</span>, <span class="k">"exit_codes"</span>: [<span class="n">0,2,3,4,5,6,7,9</span>] }
 
-<span class="c"># 2. Then drives it — one JSON object per line, terminator at the end</span>
+<span class="c"># 2. Then drives it — a local model reads your mail, on your machine</span>
 <span class="p">$ higgs classify --dry-run --limit 3 INBOX</span>
 {<span class="k">"uid"</span>:<span class="n">1842</span>,<span class="k">"subject"</span>:<span class="s">"Your order has shipped"</span>,<span class="k">"suggested_labels"</span>:[<span class="s">"Orders"</span>],<span class="k">"confidence"</span>:<span class="n">0.94</span>}
 {<span class="k">"uid"</span>:<span class="n">1843</span>,<span class="k">"subject"</span>:<span class="s">"Stripe receipt"</span>,<span class="k">"suggested_labels"</span>:[<span class="s">"Finance"</span>],<span class="k">"confidence"</span>:<span class="n">0.91</span>}
@@ -321,13 +321,41 @@
   </div>
 </div>
 
+<!-- PRIVACY -->
+<section id="private" class="alt">
+  <div class="wrap">
+    <div class="kicker">Privacy by default</div>
+    <div class="section-head">
+      <h2>Privacy isn't a promise here. It's the architecture.</h2>
+      <p>Proton's philosophy is that nobody should exploit your data, period — that's why your mail is end-to-end encrypted in the first place. Piping it to a cloud AI API would undo all of that in one request. higgs is built so it can't: mail flows through <a href="https://proton.me/mail/bridge" style="color:var(--accent-2)">Proton Mail Bridge</a> on 127.0.0.1, the model runs locally via <a href="https://ollama.com" style="color:var(--accent-2)">Ollama</a>, and there is no code path that sends a message anywhere else.</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="glyph">local-first AI</div>
+        <h3>The model comes to your mail</h3>
+        <p>Classification, search, summaries, and Q&amp;A run on a model you host — Gemma 4 by default, or any Ollama model you choose. No cloud inference, no API keys, no third party ever sees a subject line.</p>
+      </div>
+      <div class="card">
+        <div class="glyph">keyring</div>
+        <h3>Secrets stay out of the AI entirely</h3>
+        <p>Bridge credentials live in the OS keyring — macOS Keychain, Windows Credential Manager, libsecret — with an AES-256-GCM encrypted-file fallback. Nothing sensitive ever enters a model's context window.</p>
+      </div>
+      <div class="card">
+        <div class="glyph">verifiable</div>
+        <h3>Don't trust it. Audit it.</h3>
+        <p>Apache-2.0 open source, zero telemetry — no analytics, no crash reporting, no update pings. Releases are cosign-signed with an SBOM, so you can verify exactly what you're running.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- WHY -->
 <section id="why">
   <div class="wrap">
-    <div class="kicker">Why higgs exists</div>
+    <div class="kicker">Built for agents</div>
     <div class="section-head">
-      <h2>Wiring a normal CLI into an agent loop is painful</h2>
-      <p>Stdout mixes prose and data, errors are English sentences, exit codes are 0-or-1, and the only tool spec is <code>--help</code>. higgs inverts every one of those assumptions: the primary caller is a model.</p>
+      <h2>Private doesn't have to mean primitive</h2>
+      <p>Keeping AI local usually means giving up the polish of cloud tooling. higgs refuses that trade. It's engineered for agents from the first byte: stdout that's always structured data, errors that are typed, exit codes that are an enum, and a tool spec that isn't <code>--help</code> prose.</p>
     </div>
     <div class="duel">
       <div class="duel-col bad">
@@ -512,36 +540,8 @@
   </div>
 </section>
 
-<!-- LOCAL -->
-<section id="local">
-  <div class="wrap">
-    <div class="kicker">Private by architecture</div>
-    <div class="section-head">
-      <h2>Everything runs on localhost</h2>
-      <p>Mail flows through <a href="https://proton.me/mail/bridge" style="color:var(--accent-2)">Proton Mail Bridge</a> on 127.0.0.1. Classification runs through a local <a href="https://ollama.com" style="color:var(--accent-2)">Ollama</a> model. Nothing leaves your machine.</p>
-    </div>
-    <div class="grid3">
-      <div class="card">
-        <div class="glyph">no cloud</div>
-        <h3>No API keys, no inference bills</h3>
-        <p>The default model is Gemma 4 via Ollama — native function calling, 128K context, fits on a laptop. Swap in any local model you like.</p>
-      </div>
-      <div class="card">
-        <div class="glyph">keyring</div>
-        <h3>Secrets never touch the context</h3>
-        <p>Credentials live in the OS keyring — macOS Keychain, Windows Credential Manager, libsecret — with an AES-256-GCM file fallback. Nothing sensitive flows through an agent's context window.</p>
-      </div>
-      <div class="card">
-        <div class="glyph">no telemetry</div>
-        <h3>Zero phoning home</h3>
-        <p>No analytics, no crash reporting, no update pings. Releases are cosign-signed with an SBOM included. Apache-2.0, fully open source.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- INSTALL -->
-<section id="install" class="alt">
+<section id="install">
   <div class="wrap">
     <div class="kicker">Get started</div>
     <div class="section-head">
@@ -582,8 +582,8 @@ cd higgs &amp;&amp; make build</pre>
 <!-- FINAL CTA -->
 <div class="final">
   <div class="wrap">
-    <h2>Give your agent a CLI it can <span style="background:linear-gradient(100deg,var(--accent-2),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">actually drive</span></h2>
-    <p>Schema-discoverable. NDJSON-native. Locally private. Pipe-composable.</p>
+    <h2>AI for your inbox — <span style="background:linear-gradient(100deg,var(--accent-2),var(--cyan));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">on your terms</span></h2>
+    <p>Local-first. Zero telemetry. Open source. Schema-discoverable and agent-ready.</p>
     <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
       <a class="btn btn-primary" href="#install">Install higgs</a>
       <a class="btn btn-ghost" href="https://github.com/higgscli/higgs">Star on GitHub</a>
@@ -594,7 +594,7 @@ cd higgs &amp;&amp; make build</pre>
 <footer>
   <div class="wrap">
     <div class="row">
-      <div><strong style="color:var(--text)">higgs</strong> — agent-first CLI for Proton Mail</div>
+      <div><strong style="color:var(--text)">higgs</strong> — private, local-first AI for Proton Mail</div>
       <div class="links">
         <a href="https://github.com/higgscli/higgs">GitHub</a>
         <a href="https://github.com/higgscli/higgs/releases">Releases</a>

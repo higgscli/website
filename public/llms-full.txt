@@ -1,10 +1,14 @@
 # higgs — full site content for LLMs
 
-higgs is an agent-first CLI for Proton Mail. Schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum — designed to be driven by a language model, not a human.
+higgs is a private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local Ollama model — no cloud inference, no API keys, no telemetry. It is also agent-first by design: a schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, built to be driven by a language model, not a human.
 
 Unofficial project: higgs is an independent, community-built CLI for Proton Mail. It is not affiliated with, endorsed by, or sponsored by Proton AG. "Proton", "Proton Mail", and related marks are trademarks of Proton AG; this project uses them only to describe interoperability.
 
 Current version: 1.1.1. License: Apache-2.0. Language: Go. Source: https://github.com/higgscli/higgs
+
+## Privacy by architecture
+
+Proton Mail users chose end-to-end encryption so nobody can exploit their mail. Piping messages to a cloud AI API would undo that in one request, so higgs is built so it can't: mail flows through Proton Mail Bridge on 127.0.0.1, the model runs locally via Ollama (default: Gemma 4 — native function calling, 128K context, laptop-sized), and there is no code path that sends a message anywhere else. Credentials live in the OS keyring (macOS Keychain, Windows Credential Manager, libsecret on Linux) with an AES-256-GCM encrypted-file fallback and never enter a model's context. Zero telemetry: no analytics, no crash reporting, no update pings. Apache-2.0 open source; releases are cosign-signed with an SBOM so what you run is verifiable.
 
 ## Why it exists
 
