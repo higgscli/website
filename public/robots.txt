@@ -1,0 +1,18 @@
+# higgscli.com welcomes AI agents, assistants, and crawlers.
+# higgs is a CLI built to be driven by AI agents, so indexing,
+# retrieval, and answering with this content are all welcome.
+
+User-agent: *
+Allow: /
+
+# Content usage preferences (Content Signals). "yes" grants the use.
+# search: build a search index. ai-input: answer with the content in real time.
+# ai-train: train or fine-tune models on the content.
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+
+# For AI agents: a concise, machine-readable index of this site.
+# See https://llmstxt.org
+# LLM-Index: https://higgscli.com/llms.txt
+# LLM-Full: https://higgscli.com/llms-full.txt
+
+Sitemap: https://higgscli.com/sitemap.xml

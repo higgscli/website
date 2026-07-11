@@ -1,0 +1,17 @@
+{
+  // Cloudflare Worker serving the higgscli.com static marketing site.
+  // Fully static: assets in ./public are served directly at the edge;
+  // agent discoverability comes from static files (/llms.txt, /llms-full.txt,
+  // /robots.txt, /sitemap.xml) plus JSON-LD and <link rel="alternate"> in the
+  // page head — no per-request content negotiation.
+  "name": "higgscli",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "higgscli.com", "custom_domain": true },
+    { "pattern": "www.higgscli.com", "custom_domain": true }
+  ]
+}

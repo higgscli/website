@@ -1,0 +1,25 @@
+# higgs
+
+> An agent-first CLI for Proton Mail. Schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum — designed to be driven by a language model, not a human. Includes a local-only inbox classifier via Proton Mail Bridge and Ollama, plus 30+ composable commands for searching, organizing, summarizing, and extracting structured data from a mailbox.
+
+higgs is an unofficial, independent, open-source project licensed under Apache-2.0. It is not affiliated with, endorsed by, or sponsored by Proton AG. Everything runs on localhost: mail flows through Proton Mail Bridge over IMAP, AI commands use a local Ollama model (default Gemma 4), and credentials live in the OS keyring — nothing sensitive enters the model's context. Output is always structured JSON on stdout (a single document, an NDJSON stream ending with a {"type":"summary"} terminator, or a typed error envelope), never prose. Exit codes 0–9 map 1:1 to error kinds so retry and escalation are deterministic. Commands compose over pipes: any command that accepts --uid also accepts --uid -, reading UIDs (plain or NDJSON) from stdin.
+
+## Docs
+
+- [Full site content](https://higgscli.com/llms-full.txt): The complete plain-text description of higgs, including the agent contract, command list, install steps, configuration, and exit codes.
+- [Homepage](https://higgscli.com): The higgs website.
+- [Source, README, and issues](https://github.com/higgscli/higgs): The full project documentation and source code on GitHub.
+
+## Setup for agents
+
+- [Discover the tool](https://higgscli.com/llms-full.txt): Run `higgs schema` (or `higgs schema <command>`) to load a JSON manifest of every subcommand — flags, args, stdout format, exit codes — instead of parsing --help.
+- [Read streams safely](https://higgscli.com/llms-full.txt): Streaming commands emit NDJSON and always end with one {"type":"summary", ...} line. Read until the terminator.
+- [Recover from errors](https://higgscli.com/llms-full.txt): Failures emit {"error": {"kind", "code", "reason", "message", "hint"}}. Branch on .error.kind and the exit code, not on message text.
+
+## Optional
+
+- [Releases](https://github.com/higgscli/higgs/releases): Signed release binaries (cosign, SBOM included) for macOS, Linux, and Windows.
+- [Homebrew tap](https://github.com/higgscli/homebrew-higgs): `brew tap higgscli/higgs && brew install higgs`.
+- [Proton Mail Bridge](https://proton.me/mail/bridge): The official Proton bridge that higgs connects to over local IMAP.
+- [Ollama](https://ollama.com): The local model runtime used by classify, ask, summarize, digest, and extract.
+- [Author](https://akeemjenkins.com): Akeem Jenkins, who designed and built higgs.

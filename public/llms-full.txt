@@ -1,0 +1,134 @@
+# higgs — full site content for LLMs
+
+higgs is an agent-first CLI for Proton Mail. Schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum — designed to be driven by a language model, not a human.
+
+Unofficial project: higgs is an independent, community-built CLI for Proton Mail. It is not affiliated with, endorsed by, or sponsored by Proton AG. "Proton", "Proton Mail", and related marks are trademarks of Proton AG; this project uses them only to describe interoperability.
+
+Current version: 1.1.1. License: Apache-2.0. Language: Go. Source: https://github.com/higgscli/higgs
+
+## Why it exists
+
+Wiring a normal CLI into an agent loop is painful: stdout mixes prose and data, errors are English sentences, exit codes are 0-or-1, and the only tool specification is --help. higgs inverts that. Every design decision assumes the primary caller is a model:
+
+- Schema manifest. `higgs schema` (or `higgs schema <command>`) emits a JSON description of every subcommand — flags, args, stdout format, exit codes. An agent loads it once and can drive the tool without prompt-engineered command syntax.
+- NDJSON streaming with a terminator. Every streaming command emits one JSON object per line and ends with {"type":"summary", ...}. Callers know when a stream is done without heuristics.
+- Typed error envelopes. Every failure emits {"error": {"kind", "code", "reason", "message", "hint"}}. Agents branch on .error.kind, not on parsed English.
+- Exit codes as an enum. Exit codes map 1:1 to error kinds, so retry and escalation are deterministic: retry on 5 (imap), prompt the user on 2 (auth), surface to the caller on 4 (config).
+- Sanitized stderr. Human-readable progress on stderr, stripped of ANSI escapes, bidi controls, and zero-width characters — safe to feed back into a model's context.
+- Checkpointed state. SQLite state DB with backfill and state clear so runs are resumable across crashes and restarts.
+- Secrets out-of-band. Credentials go to the OS keyring (macOS Keychain, Windows Credential Manager, libsecret on Linux) with an AES-256-GCM file fallback, so nothing sensitive flows through an agent's context.
+
+Everything runs on localhost: mail flows through Proton Mail Bridge over IMAP, and AI commands use a local Ollama model (default: Gemma 4 — native function calling, 128K context, laptop-sized). No API keys, no cloud inference, no telemetry.
+
+## Composability
+
+Commands compose over pipes. Every command that accepts an explicit --uid list also accepts --uid -, which reads the UID set from stdin. Stdin may be plain UIDs (comma- or whitespace-separated) or NDJSON, from which each row's numeric uid field is taken (rows without one, like summary lines, are skipped). Any command's NDJSON output is directly usable as another's input:
+
+    higgs search INBOX --before 2025-07-01 | higgs archive INBOX --uid -
+    higgs state query INBOX --is-mailing-list false | higgs move INBOX Folders/Personal --uid -
+    higgs search INBOX --before 2025-07-01 | higgs verify INBOX --uid - --expect absent
+
+## Commands
+
+Read & search:
+- search — search IMAP messages by typed criteria, stream matches as NDJSON
+- fetch-and-parse — fetch messages and emit NDJSON (one JSON object per message)
+- thread / threads — stream a message's conversation, or group messages into threads
+- attachments — extract attachment bytes from one or more messages
+- scan-folders — list IMAP mailboxes as JSON
+- watch — stream mailbox change events as NDJSON until cancelled
+
+Understand (local AI via Ollama):
+- classify — classify messages and emit NDJSON results; --dry-run to preview, --apply to write labels
+- ask — agentic Q&A over the mailbox using read-only tools
+- summarize — summarize messages, stream NDJSON results
+- digest — produce a structured JSON digest of recent messages
+- extract — extract structured data from messages with a JSON schema
+
+Act:
+- move / archive / trash — move messages between mailboxes (IMAP MOVE with COPY+EXPUNGE fallback), with post-move verification
+- mark-read / flag — flip flags/keywords on a UID set
+- apply-labels — apply labels from the state DB to messages
+- unsubscribe — honor List-Unsubscribe / List-Unsubscribe-Post headers
+- draft — compose a message and save to Drafts via IMAP APPEND (does not send)
+- send — compose and send a message via SMTP
+
+State & safety:
+- state query — query per-message classification records (labels, confidence, rationale, mailing-list flag, apply status); purely local, streams NDJSON whose uid fields pipe into --uid - consumers
+- state clear — reset the state DB
+- verify — audit a mailbox against an expected UID set, stream violations as NDJSON
+- backfill — parse a classify log file and populate the state DB
+- cleanup-labels — consolidate old labels into the canonical set
+- auth — store and manage IMAP credentials via the OS keyring or encrypted file
+
+Portability & meta:
+- export — export a mailbox to mbox or JSONL (optionally gzipped)
+- import — import messages from mbox or JSONL
+- schema — print machine-readable command metadata as JSON
+- completion — shell autocompletion scripts
+
+## Exit codes
+
+0 success — command completed without error
+1 api — upstream API error (generic)
+2 auth — authentication or credential failure
+3 validation — invalid flags, arguments, or input
+4 config — missing or malformed configuration
+5 imap — IMAP protocol or connection error
+6 classify — classification error (Ollama, prompt, parsing)
+7 state — state DB error (SQLite)
+8 discovery — mailbox discovery failure
+9 internal — unexpected internal error
+
+## Error envelope example
+
+    {
+      "error": {
+        "kind": "config",
+        "code": 400,
+        "reason": "configError",
+        "message": "PM_IMAP_USERNAME is required",
+        "hint": "export PM_IMAP_USERNAME=<bridge-username>"
+      }
+    }
+
+## Install
+
+Homebrew (macOS & Linux):
+
+    brew tap higgscli/higgs
+    brew install higgs
+
+Go:
+
+    go install github.com/higgscli/higgs/cmd/higgs@latest
+
+From source:
+
+    git clone https://github.com/higgscli/higgs.git
+    cd higgs && make build
+
+Release binaries (cosign-signed, SBOM included): https://github.com/higgscli/higgs/releases/latest
+
+## Configuration
+
+Prerequisites: Proton Mail Bridge (https://proton.me/mail/bridge) running and signed in; Ollama (https://ollama.com) for the AI commands (`ollama pull gemma4`).
+
+    export PM_IMAP_USERNAME="alice@proton.me"
+    export PM_IMAP_PASSWORD="bridge-generated-password"
+    export PM_IMAP_HOST="127.0.0.1"
+    export PM_IMAP_PORT="1143"
+    export PM_OLLAMA_MODEL="gemma4"
+
+Quickstart:
+
+    higgs classify --dry-run --limit 20 INBOX   # preview
+    higgs classify --apply --workers 4 INBOX    # write labels
+
+## Links
+
+- Homepage: https://higgscli.com
+- Source & docs: https://github.com/higgscli/higgs
+- Releases: https://github.com/higgscli/higgs/releases
+- Homebrew tap: https://github.com/higgscli/homebrew-higgs
+- Author: Akeem Jenkins — https://akeemjenkins.com
