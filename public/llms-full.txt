@@ -1,14 +1,14 @@
 # higgs — full site content for LLMs
 
-higgs is a private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local Ollama model — no cloud inference, no API keys, no telemetry. It is also agent-first by design: a schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, built to be driven by a language model, not a human.
+higgs is a private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local model — Ollama by default, or any self-hosted OpenAI-compatible server such as llama.cpp llama-server — no cloud inference, no cloud API keys, no telemetry. It is also agent-first by design: a schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, built to be driven by a language model, not a human.
 
 Unofficial project: higgs is an independent, community-built CLI for Proton Mail. It is not affiliated with, endorsed by, or sponsored by Proton AG. "Proton", "Proton Mail", and related marks are trademarks of Proton AG; this project uses them only to describe interoperability.
 
-Current version: 1.1.1. License: Apache-2.0. Language: Go. Source: https://github.com/higgscli/higgs
+Current version: 1.2.0. License: Apache-2.0. Language: Go. Source: https://github.com/higgscli/higgs
 
 ## Privacy by architecture
 
-Proton Mail users chose end-to-end encryption so nobody can exploit their mail. Piping messages to a cloud AI API would undo that in one request, so higgs is built so it can't: mail flows through Proton Mail Bridge on 127.0.0.1, the model runs locally via Ollama (default: Gemma 4 — native function calling, 128K context, laptop-sized), and there is no code path that sends a message anywhere else. Credentials live in the OS keyring (macOS Keychain, Windows Credential Manager, libsecret on Linux) with an AES-256-GCM encrypted-file fallback and never enter a model's context. Zero telemetry: no analytics, no crash reporting, no update pings. Apache-2.0 open source; releases are cosign-signed with an SBOM so what you run is verifiable.
+Proton Mail users chose end-to-end encryption so nobody can exploit their mail. Piping messages to a cloud AI API would undo that in one request, so higgs is built so it can't: mail flows through Proton Mail Bridge on 127.0.0.1, the model runs locally — via Ollama (default: Gemma 4 — native function calling, 128K context, laptop-sized) or via any self-hosted OpenAI-compatible server such as llama.cpp llama-server (PM_LLM_BACKEND=openai) — and there is no code path that sends a message anywhere else. Credentials live in the OS keyring (macOS Keychain, Windows Credential Manager, libsecret on Linux) with an AES-256-GCM encrypted-file fallback and never enter a model's context. Zero telemetry: no analytics, no crash reporting, no update pings. Apache-2.0 open source; releases are cosign-signed with an SBOM so what you run is verifiable.
 
 ## Why it exists
 
@@ -22,7 +22,7 @@ Wiring a normal CLI into an agent loop is painful: stdout mixes prose and data, 
 - Checkpointed state. SQLite state DB with backfill and state clear so runs are resumable across crashes and restarts.
 - Secrets out-of-band. Credentials go to the OS keyring (macOS Keychain, Windows Credential Manager, libsecret on Linux) with an AES-256-GCM file fallback, so nothing sensitive flows through an agent's context.
 
-Everything runs on localhost: mail flows through Proton Mail Bridge over IMAP, and AI commands use a local Ollama model (default: Gemma 4 — native function calling, 128K context, laptop-sized). No API keys, no cloud inference, no telemetry.
+Everything runs on localhost: mail flows through Proton Mail Bridge over IMAP, and AI commands use a local model — Ollama (default: Gemma 4 — native function calling, 128K context, laptop-sized) or any self-hosted OpenAI-compatible server such as llama.cpp llama-server. No cloud API keys, no cloud inference, no telemetry. (PM_OPENAI_API_KEY, when set, is only an optional bearer token for your own self-hosted server; it is sent only when set and never to any cloud service.)
 
 ## Composability
 
@@ -42,7 +42,7 @@ Read & search:
 - scan-folders — list IMAP mailboxes as JSON
 - watch — stream mailbox change events as NDJSON until cancelled
 
-Understand (local AI via Ollama):
+Understand (local AI via Ollama or a self-hosted OpenAI-compatible server):
 - classify — classify messages and emit NDJSON results; --dry-run to preview, --apply to write labels
 - ask — agentic Q&A over the mailbox using read-only tools
 - summarize — summarize messages, stream NDJSON results
@@ -79,7 +79,7 @@ Portability & meta:
 3 validation — invalid flags, arguments, or input
 4 config — missing or malformed configuration
 5 imap — IMAP protocol or connection error
-6 classify — classification error (Ollama, prompt, parsing)
+6 classify — classification error (Ollama / OpenAI-compatible backend, prompt, parsing)
 7 state — state DB error (SQLite)
 8 discovery — mailbox discovery failure
 9 internal — unexpected internal error
@@ -116,13 +116,27 @@ Release binaries (cosign-signed, SBOM included): https://github.com/higgscli/hig
 
 ## Configuration
 
-Prerequisites: Proton Mail Bridge (https://proton.me/mail/bridge) running and signed in; Ollama (https://ollama.com) for the AI commands (`ollama pull gemma4`).
+Prerequisites: Proton Mail Bridge (https://proton.me/mail/bridge) running and signed in; a local LLM backend for the AI commands — Ollama (https://ollama.com, `ollama pull gemma4`) by default, or any self-hosted OpenAI-compatible server such as llama.cpp llama-server.
 
     export PM_IMAP_USERNAME="alice@proton.me"
     export PM_IMAP_PASSWORD="bridge-generated-password"
     export PM_IMAP_HOST="127.0.0.1"
     export PM_IMAP_PORT="1143"
     export PM_OLLAMA_MODEL="gemma4"
+
+LLM backend: higgs supports two local backends, selected with PM_LLM_BACKEND (default: ollama). Everything stays local either way — "openai" means the OpenAI-compatible Chat Completions API served by self-hosted engines like llama.cpp llama-server, not the OpenAI cloud.
+
+    export PM_LLM_BACKEND="ollama"                       # default
+    export PM_OLLAMA_BASE_URL="http://localhost:11434"   # default
+    export PM_OLLAMA_MODEL="gemma4"                      # default
+
+    # or a self-hosted OpenAI-compatible server:
+    export PM_LLM_BACKEND="openai"
+    export PM_OPENAI_BASE_URL="http://localhost:8080"    # required (e.g. llama.cpp llama-server)
+    export PM_OPENAI_MODEL="qwen3.6-35b-a3b"             # required
+    export PM_OPENAI_API_KEY="..."                       # optional bearer token for your own server; sent only when set
+
+Reasoning models (e.g. Qwen3) are handled automatically: thinking is disabled for structured commands (classify, extract, digest) and enabled for ask and summarize; structured output uses response_format json_schema.
 
 Quickstart:
 

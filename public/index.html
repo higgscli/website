@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>higgs — AI for your Proton Mail inbox. Nothing leaves your machine.</title>
-<meta name="description" content="A private, local-first AI CLI for Proton Mail. Classification, search, and Q&A run entirely on your machine through Proton Mail Bridge and a local Ollama model — no cloud inference, no API keys, no telemetry. Open source, agent-first by design.">
+<meta name="description" content="A private, local-first AI CLI for Proton Mail. Classification, search, and Q&A run entirely on your machine through Proton Mail Bridge and a local model — Ollama by default, or any self-hosted OpenAI-compatible server like llama.cpp — no cloud inference, no cloud API keys, no telemetry. Open source, agent-first by design.">
 <meta property="og:title" content="higgs — AI for your Proton Mail inbox. Nothing leaves your machine.">
-<meta property="og:description" content="Private, local-first AI for Proton Mail. Everything runs on localhost via Bridge + a local Ollama model: no cloud inference, no API keys, no telemetry. Open source.">
+<meta property="og:description" content="Private, local-first AI for Proton Mail. Everything runs on localhost via Bridge + a local model (Ollama or any self-hosted OpenAI-compatible server): no cloud inference, no cloud API keys, no telemetry. Open source.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://higgscli.com">
 <link rel="canonical" href="https://higgscli.com/">
@@ -24,10 +24,10 @@
   "url": "https://higgscli.com",
   "downloadUrl": "https://github.com/higgscli/higgs/releases/latest",
   "codeRepository": "https://github.com/higgscli/higgs",
-  "softwareVersion": "1.1.1",
+  "softwareVersion": "1.2.0",
   "license": "https://www.apache.org/licenses/LICENSE-2.0",
-  "description": "A private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local Ollama model — no cloud inference, no API keys, no telemetry, credentials kept in the OS keyring. Agent-first by design: schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, with 30+ composable commands.",
-  "keywords": "Proton Mail, privacy, local-first AI, local LLM, CLI, AI agent, NDJSON, schema manifest, email classifier, Ollama, IMAP, Claude, Codex, agent tools, no telemetry",
+  "description": "A private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local model — Ollama by default, or any self-hosted OpenAI-compatible server such as llama.cpp llama-server — no cloud inference, no cloud API keys, no telemetry, credentials kept in the OS keyring. Agent-first by design: schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, with 30+ composable commands.",
+  "keywords": "Proton Mail, privacy, local-first AI, local LLM, CLI, AI agent, NDJSON, schema manifest, email classifier, Ollama, llama.cpp, OpenAI-compatible API, IMAP, Claude, Codex, agent tools, no telemetry",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "Akeem Jenkins", "url": "https://akeemjenkins.com" },
   "isAccessibleForFree": true
@@ -297,9 +297,9 @@
 
 <div class="hero">
   <div class="wrap">
-    <div class="eyebrow"><span class="pulse"></span> v1.1.1 · open source · zero telemetry · 100% localhost</div>
+    <div class="eyebrow"><span class="pulse"></span> v1.2.0 · open source · zero telemetry · 100% localhost</div>
     <h1>AI for your inbox. <span class="grad">Nothing leaves your machine.</span></h1>
-    <p class="lede">You chose Proton Mail because your email belongs to you — not to advertisers, data brokers, or model providers. higgs keeps it that way: a local-first AI CLI that classifies, searches, and answers questions about your mail entirely on your own hardware, through Proton Mail Bridge and a local Ollama model. No cloud inference. No API keys. No telemetry.</p>
+    <p class="lede">You chose Proton Mail because your email belongs to you — not to advertisers, data brokers, or model providers. higgs keeps it that way: a local-first AI CLI that classifies, searches, and answers questions about your mail entirely on your own hardware, through Proton Mail Bridge and a local model you host — Ollama by default, or any OpenAI-compatible server like llama.cpp. No cloud inference. No cloud API keys. No telemetry.</p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="#install">Get started</a>
       <a class="btn btn-ghost" href="https://github.com/higgscli/higgs">View on GitHub</a>
@@ -314,13 +314,13 @@
       <div class="term-bar"><i></i><i></i><i></i><span>higgs — local agent session · 127.0.0.1</span></div>
       <div class="term-body"><span class="c"># 1. The agent discovers the tool — no prompt-engineered syntax</span>
 <span class="p">$ higgs schema classify</span>
-{ <span class="k">"name"</span>: <span class="s">"classify"</span>, <span class="k">"stdout"</span>: <span class="s">"ndjson"</span>, <span class="k">"exit_codes"</span>: [<span class="n">0,2,3,4,5,6,7,9</span>] }
+{ <span class="k">"name"</span>: <span class="s">"classify"</span>, <span class="k">"stdout"</span>: <span class="s">"ndjson"</span>, <span class="k">"exit_codes"</span>: [<span class="n">0,2,3,4,5,6,7</span>] }
 
 <span class="c"># 2. Then drives it — a local model reads your mail, on your machine</span>
 <span class="p">$ higgs classify --dry-run --limit 3 INBOX</span>
 {<span class="k">"uid"</span>:<span class="n">1842</span>,<span class="k">"subject"</span>:<span class="s">"Your order has shipped"</span>,<span class="k">"suggested_labels"</span>:[<span class="s">"Orders"</span>],<span class="k">"confidence"</span>:<span class="n">0.94</span>}
 {<span class="k">"uid"</span>:<span class="n">1843</span>,<span class="k">"subject"</span>:<span class="s">"Stripe receipt"</span>,<span class="k">"suggested_labels"</span>:[<span class="s">"Finance"</span>],<span class="k">"confidence"</span>:<span class="n">0.91</span>}
-{<span class="k">"uid"</span>:<span class="n">1844</span>,<span class="k">"subject"</span>:<span class="s">"PR review requested"</span>,<span class="k">"suggested_labels"</span>:[<span class="s">"Work"</span>],<span class="k">"confidence"</span>:<span class="n">0.97</span>}
+{<span class="k">"uid"</span>:<span class="n">1844</span>,<span class="k">"subject"</span>:<span class="s">"New sign-in to your account"</span>,<span class="k">"suggested_labels"</span>:[<span class="s">"Security"</span>],<span class="k">"confidence"</span>:<span class="n">0.97</span>}
 {<span class="k">"type"</span>:<span class="s">"summary"</span>,<span class="k">"classified"</span>:<span class="n">3</span>,<span class="k">"errors"</span>:<span class="n">0</span>,<span class="k">"skipped"</span>:<span class="n">0</span>}
 
 <span class="c"># 3. And composes it — NDJSON out pipes straight into --uid -</span>
@@ -335,13 +335,13 @@
     <div class="kicker">Privacy by default</div>
     <div class="section-head">
       <h2>Privacy isn't a promise here. It's the architecture.</h2>
-      <p>Proton's philosophy is that nobody should exploit your data, period — that's why your mail is end-to-end encrypted in the first place. Piping it to a cloud AI API would undo all of that in one request. higgs is built so it can't: mail flows through <a href="https://proton.me/mail/bridge" style="color:var(--accent-2)">Proton Mail Bridge</a> on 127.0.0.1, the model runs locally via <a href="https://ollama.com" style="color:var(--accent-2)">Ollama</a>, and there is no code path that sends a message anywhere else.</p>
+      <p>Proton's philosophy is that nobody should exploit your data, period — that's why your mail is end-to-end encrypted in the first place. Piping it to a cloud AI API would undo all of that in one request. higgs is built so it can't: mail flows through <a href="https://proton.me/mail/bridge" style="color:var(--accent-2)">Proton Mail Bridge</a> on 127.0.0.1, the model runs locally — via <a href="https://ollama.com" style="color:var(--accent-2)">Ollama</a> or any self-hosted OpenAI-compatible server such as llama.cpp <code>llama-server</code> — and there is no code path that sends a message anywhere else.</p>
     </div>
     <div class="grid3">
       <div class="card">
         <div class="glyph">local-first AI</div>
         <h3>The model comes to your mail</h3>
-        <p>Classification, search, summaries, and Q&amp;A run on a model you host — Gemma 4 by default, or any Ollama model you choose. No cloud inference, no API keys, no third party ever sees a subject line.</p>
+        <p>Classification, search, summaries, and Q&amp;A run on a model you host — Gemma 4 via Ollama by default, or any OpenAI-compatible server you run yourself, like llama.cpp <code>llama-server</code> (<code>PM_LLM_BACKEND=openai</code>). No cloud inference, no cloud API keys, no third party ever sees a subject line.</p>
       </div>
       <div class="card">
         <div class="glyph">keyring</div>
@@ -399,15 +399,15 @@
           <pre class="code"><span class="p">$ higgs schema classify</span>
 {
   <span class="k">"name"</span>: <span class="s">"classify"</span>,
-  <span class="k">"summary"</span>: <span class="s">"Classify messages with Ollama…"</span>,
-  <span class="k">"args"</span>: [{<span class="k">"name"</span>:<span class="s">"mailbox"</span>,<span class="k">"default"</span>:<span class="s">"INBOX"</span>}],
+  <span class="k">"short"</span>: <span class="s">"Classify messages with a local LLM…"</span>,
+  <span class="k">"args"</span>: [{<span class="k">"name"</span>:<span class="s">"mailbox"</span>,<span class="k">"default"</span>:<span class="s">"Folders/Accounts"</span>}],
   <span class="k">"flags"</span>: [
     {<span class="k">"name"</span>:<span class="s">"dry-run"</span>,<span class="k">"type"</span>:<span class="s">"bool"</span>},
     {<span class="k">"name"</span>:<span class="s">"apply"</span>,<span class="k">"type"</span>:<span class="s">"bool"</span>},
-    {<span class="k">"name"</span>:<span class="s">"limit"</span>,<span class="k">"type"</span>:<span class="s">"int"</span>,<span class="k">"default"</span>:<span class="n">100</span>}
+    {<span class="k">"name"</span>:<span class="s">"limit"</span>,<span class="k">"type"</span>:<span class="s">"int"</span>,<span class="k">"default"</span>:<span class="s">"0"</span>}
   ],
   <span class="k">"stdout"</span>: <span class="s">"ndjson"</span>,
-  <span class="k">"exit_codes"</span>: [<span class="n">0,2,3,4,5,6,7,9</span>]
+  <span class="k">"exit_codes"</span>: [<span class="n">0,2,3,4,5,6,7</span>]
 }</pre>
         </div>
         <div class="step">
@@ -445,7 +445,7 @@
               <tr><td>3</td><td>validation</td><td>Fix flags or args, retry</td></tr>
               <tr><td>4</td><td>config</td><td>Surface missing config</td></tr>
               <tr><td>5</td><td>imap</td><td>Retry with backoff</td></tr>
-              <tr><td>6</td><td>classify</td><td>Check Ollama, retry</td></tr>
+              <tr><td>6</td><td>classify</td><td>Check the local LLM server, retry</td></tr>
               <tr><td>7</td><td>state</td><td>Inspect the state DB</td></tr>
               <tr><td>9</td><td>internal</td><td>Escalate to user</td></tr>
             </tbody>
@@ -499,7 +499,7 @@
       <div class="cmd-group">
         <h3>Understand (local AI)</h3>
         <ul>
-          <li><code>classify</code><span>label with Ollama</span></li>
+          <li><code>classify</code><span>label with your local LLM</span></li>
           <li><code>ask</code><span>agentic Q&amp;A over the mailbox</span></li>
           <li><code>summarize</code><span>NDJSON summaries</span></li>
           <li><code>digest</code><span>structured recent-mail digest</span></li>
@@ -554,7 +554,7 @@
     <div class="kicker">Get started</div>
     <div class="section-head">
       <h2>Install in 60 seconds</h2>
-      <p>Prerequisites for the AI commands: a running <a href="https://proton.me/mail/bridge" style="color:var(--accent-2)">Proton Mail Bridge</a> and <a href="https://ollama.com" style="color:var(--accent-2)">Ollama</a>. Everything else just needs Bridge.</p>
+      <p>Prerequisites for the AI commands: a running <a href="https://proton.me/mail/bridge" style="color:var(--accent-2)">Proton Mail Bridge</a> and a local model server — <a href="https://ollama.com" style="color:var(--accent-2)">Ollama</a> (default) or any OpenAI-compatible server like llama.cpp <code>llama-server</code>. Everything else just needs Bridge.</p>
     </div>
     <div class="installs">
       <div class="install-card">
@@ -572,16 +572,19 @@ brew install higgs</pre>
 cd higgs &amp;&amp; make build</pre>
       </div>
     </div>
-    <pre class="code"><span class="c"># Point higgs at Bridge and Ollama</span>
+    <pre class="code"><span class="c"># Point higgs at Bridge and your local model (Ollama by default)</span>
 <span class="p">$ export PM_IMAP_USERNAME=<span class="s">"alice@proton.me"</span></span>
 <span class="p">$ export PM_IMAP_PASSWORD=<span class="s">"bridge-generated-password"</span></span>
 <span class="p">$ export PM_IMAP_HOST=<span class="s">"127.0.0.1"</span>  PM_IMAP_PORT=<span class="s">"1143"</span>  PM_OLLAMA_MODEL=<span class="s">"gemma4"</span></span>
+
+<span class="c"># Or any OpenAI-compatible server you host, e.g. llama.cpp llama-server</span>
+<span class="p">$ export PM_LLM_BACKEND=<span class="s">"openai"</span>  PM_OPENAI_BASE_URL=<span class="s">"http://localhost:8080"</span>  PM_OPENAI_MODEL=<span class="s">"qwen3.6-35b-a3b"</span></span>
 
 <span class="c"># Dry-run against your inbox — preview, apply only when it looks right</span>
 <span class="p">$ higgs classify --dry-run --limit 20 INBOX</span>
 <span class="p">$ higgs classify --apply --workers 4 INBOX</span></pre>
     <div style="margin-top: 34px; display: flex; gap: 14px; flex-wrap: wrap;">
-      <a class="btn btn-primary" href="https://github.com/higgscli/higgs/releases/latest">Download v1.1.1</a>
+      <a class="btn btn-primary" href="https://github.com/higgscli/higgs/releases/latest">Download v1.2.0</a>
       <a class="btn btn-ghost" href="https://github.com/higgscli/higgs#readme">Read the docs</a>
     </div>
   </div>
