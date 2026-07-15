@@ -4,7 +4,7 @@ higgs is a private, local-first AI CLI for Proton Mail. Classification, search, 
 
 Unofficial project: higgs is an independent, community-built CLI for Proton Mail. It is not affiliated with, endorsed by, or sponsored by Proton AG. "Proton", "Proton Mail", and related marks are trademarks of Proton AG; this project uses them only to describe interoperability.
 
-Current version: 1.2.0. License: Apache-2.0. Language: Go. Source: https://github.com/higgscli/higgs
+Current version: 1.2.1. License: Apache-2.0. Language: Go. Source: https://github.com/higgscli/higgs
 
 ## Privacy by architecture
 
