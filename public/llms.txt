@@ -19,7 +19,7 @@ Privacy is the architecture, not a policy: Proton Mail users chose end-to-end en
 ## Optional
 
 - [Releases](https://github.com/higgscli/higgs/releases): Signed release binaries (cosign, SBOM included) for macOS, Linux, and Windows.
-- [Homebrew tap](https://github.com/higgscli/homebrew-higgs): `brew tap higgscli/higgs && brew install higgs`.
+- [Homebrew tap](https://github.com/higgscli/homebrew-higgs): `brew tap higgscli/higgs && brew install --cask higgs` (macOS only).
 - [Proton Mail Bridge](https://proton.me/mail/bridge): The official Proton bridge that higgs connects to over local IMAP.
 - [Ollama](https://ollama.com): The default local model runtime for classify, ask, summarize, digest, and extract. higgs can instead target any self-hosted OpenAI-compatible server (e.g. llama.cpp llama-server) via PM_LLM_BACKEND=openai — still local-only.
 - [Author](https://akeemjenkins.com): Akeem Jenkins, who designed and built higgs.
