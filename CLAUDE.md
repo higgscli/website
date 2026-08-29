@@ -7,8 +7,11 @@ named `higgscli` (account "Akeem Dreams"), custom domains higgscli.com + www.
 ## Layout
 
 - `public/` is the whole site: `index.html`, `404.html`, `llms.txt`,
-  `llms-full.txt`, `robots.txt`, `sitemap.xml`. No server code —
-  `wrangler.jsonc` is assets-only.
+  `llms-full.txt`, `robots.txt`, `sitemap.xml`. The only server code is
+  `src/index.js`, a fetch handler wrapping asset serving with
+  `@datafast/ai-crawl` bot tracking (keep it ≥1.0.8 — 1.0.7 silently drops
+  all events on Workers). `assets.run_worker_first: true` in `wrangler.jsonc`
+  is required or the Worker never runs and no crawler hit is recorded.
 - Deploy: `npm run deploy`. After deploying, the apex can serve a stale
   edge-cached copy for a minute or two — verify with `curl` before assuming a
   deploy failed.
