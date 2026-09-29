@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)">
 <title>Jev decision models in higgs classify: benchmarks vs. local Gemma — higgs blog</title>
-<meta name="description" content="higgs classify can now route through a local Jev decision model. On 155 real emails, Open-Jev-2B ranked mail that needs attention better than the gemma4:e4b model higgs used before (AUROC 0.87 vs 0.78) — still entirely on hardware you own.">
+<meta name="description" content="higgs classify can now route through a local Jev decision model. On the same GPU, Open-Jev-2B scored 155 real emails about 2.6× faster than gemma4:e4b and ranked them better (AUROC 0.87 vs 0.81), with category labels on par. Still entirely on hardware you own.">
 <meta property="og:title" content="Jev decision models in higgs classify: benchmarks vs. local Gemma">
-<meta property="og:description" content="A decision model scores options in one forward pass instead of generating JSON. On 155 real emails: AUROC 0.87 vs 0.78, 29/35 vs 24/35 needs-attention emails caught at about the same false-alarm level. Still local-first.">
+<meta property="og:description" content="A decision model scores options in one forward pass instead of generating JSON. On one real inbox: faster, better at spotting bulk mail and ranking what needs attention, category labels on par. Hardware caveats included. Still local-first.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://higgscli.com/blog/jev-classification/">
 <link rel="canonical" href="https://higgscli.com/blog/jev-classification/">
@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "Jev decision models in higgs classify: benchmarks vs. local Gemma",
-  "description": "higgs classify can now route through a local Jev decision model. On 155 real emails, Open-Jev-2B ranked needs-attention mail better than gemma4:e4b (AUROC 0.87 vs 0.78), entirely on hardware the user owns.",
+  "description": "higgs classify can now route through a local Jev decision model. On the same GPU, Open-Jev-2B scored 155 real emails about 2.6x faster than gemma4:e4b and ranked them better (AUROC 0.87 vs 0.81), with category labels on par, entirely on hardware the user owns.",
   "datePublished": "2026-09-29",
   "dateModified": "2026-09-29",
   "url": "https://higgscli.com/blog/jev-classification/",
@@ -66,8 +66,8 @@
 <div class="page-head">
   <div class="wrap narrow">
     <div class="kicker"><a href="/blog/">Blog</a> · Classification</div>
-    <h1>Jev decision models: <span class="grad">sharper classification, still on your hardware</span></h1>
-    <p class="dek"><code>higgs classify</code> can now ask a local <em>decision</em> model instead of a text generator. On 155 real emails, Open-Jev-2B put the mail that needed attention ahead of the rest more reliably than the Gemma model higgs used before. Here's what we measured, what we didn't, and how to set it up.</p>
+    <h1>Jev decision models: <span class="grad">faster triage, still on your hardware</span></h1>
+    <p class="dek"><code>higgs classify</code> can now ask a local <em>decision</em> model instead of a text generator. On one real inbox it was faster, better at spotting bulk mail, and better at ranking what needs attention than the Gemma model higgs used before. Its category labels were on par, not better. Here's what we measured, what we didn't, and how to set it up.</p>
     <p class="byline"><time datetime="2026-09-29">September 29, 2026</time> · <a href="https://akeemjenkins.com">Akeem Jenkins</a></p>
   </div>
 </div>
@@ -78,9 +78,10 @@
   <div class="tldr">
     <div class="label">TL;DR</div>
     <ul>
-      <li><strong>New option, same privacy model.</strong> <code>PM_CLASSIFY_BACKEND=jev</code> sends <code>higgs classify</code> to a Jev decision server you run yourself. Your mail still never leaves hardware you own. Gemma via Ollama stays the default.</li>
-      <li><strong>Better ranking on our test.</strong> On 155 of the maintainer's own emails, Open-Jev-2B scored an AUROC of <strong>0.87</strong> against <strong>0.78</strong> for <code>gemma4:e4b</code>. It caught <strong>29 of 35</strong> needs-attention emails where Gemma caught 24, with about the same number of false alarms (22 vs. 21 of 120).</li>
-      <li><strong>Faster, but read the fine print.</strong> 0.24 s/email for Open-Jev-2B on an RTX 3080 against 0.78 s/email for Gemma on an M4 Pro Mac. That's two different machines. The same-hardware numbers are below.</li>
+      <li><strong>New option, same privacy model.</strong> <code>PM_CLASSIFY_BACKEND=jev</code> sends <code>higgs classify</code> to a Jev decision server you run yourself. Your mail still never leaves hardware you own. The default stays <code>llm</code>, meaning your usual local model.</li>
+      <li><strong>Faster.</strong> On the same RTX 3080, Open-Jev-2B scored each email in <strong>0.24 s</strong> against <strong>0.62 s</strong> for <code>gemma4:e4b</code> (about 2.6×). End to end on 59 real messages, <code>higgs classify</code> went from <strong>1.86 s</strong> to <strong>0.35 s</strong> per email (about 5.3×). That comparison is between the Mac setup higgs was using and the GPU box, so it mixes hardware.</li>
+      <li><strong>Better at bulk mail and ranking.</strong> Jev flagged 18 of 25 automated messages as bulk where Gemma flagged 14. On the 155-email attention test it scored an AUROC of 0.87 against 0.81 for Gemma on the same GPU.</li>
+      <li><strong>Labels on par.</strong> On 42 messages with an unambiguous category, both picked the right top label 27 times.</li>
     </ul>
   </div>
 
@@ -89,12 +90,13 @@
   <p>A <strong>Jev model</strong> is a <em>decision</em> model. You give it a question and the options, and in one forward pass it returns a calibrated probability for each option. Nothing is generated. It handles three typed question kinds: yes/no (<code>noul</code>), pick one (<code>choice</code>), and a 0–5 rating (<code>score</code>). For triage, that's the whole job.</p>
 
   <h3>How higgs uses it</h3>
-  <p>With the Jev backend enabled, higgs asks two questions about each email:</p>
+  <p>With the Jev backend enabled, higgs sends the first 1,200 characters of each message body to the Jev server and asks two questions:</p>
   <ol>
-    <li><strong>Yes/no:</strong> is this a newsletter, mailing list, marketing, or bulk email?</li>
-    <li><strong>Choice:</strong> which of the 11 taxonomy categories does it belong to?</li>
+    <li><strong>Yes/no:</strong> is this automated or mass-sent? The answer sets the message's <code>is_mailing_list</code> flag.</li>
+    <li><strong>Choice:</strong> which of the 11 taxonomy labels fits? The top label goes into <code>suggested_labels</code>, plus the runner-up when its probability is at least 0.3.</li>
   </ol>
-  <p>The confidence higgs records is the model's probability. There's no JSON for the model to get wrong and no generation step to time out. Only classification changes: <code>summarize</code>, <code>digest</code>, <code>ask</code>, and <code>extract</code> still use your <code>PM_LLM_BACKEND</code> (Ollama or a self-hosted OpenAI-compatible server) exactly as before.</p>
+  <p>The <code>confidence</code> higgs records is the top label's probability. There's no JSON for the model to get wrong and no generation step to time out. Only classification changes: <code>summarize</code>, <code>digest</code>, <code>ask</code>, and <code>extract</code> still use your <code>PM_LLM_BACKEND</code> (Ollama or a self-hosted OpenAI-compatible server) exactly as before.</p>
+  <p>One thing we learned while tuning: the wording of the question matters. When we asked only about newsletters and marketing, the bulk question caught 8 of 18 automated emails in a tuning sample. Naming notifications and unsubscribe or notification-settings links, which matches the rule higgs already uses for <code>is_mailing_list</code>, caught 14 of 18 at an AUROC of 0.992.</p>
 
   <h2>The test</h2>
   <p>We didn't use a public benchmark. We used a real inbox. The test set is <strong>155 emails from the maintainer's own Proton Mail account</strong>: 35 he had kept because they needed his personal attention, and 120 picked at random from mail he had archived. Every model got the same question:</p>
@@ -110,7 +112,10 @@
       </thead>
       <tbody>
         <tr><td><code>gemma4:e4b-mlx</code> (Ollama, structured JSON)</td><td>Apple M4 Pro, 48 GB</td><td class="num">500</td><td class="num">0.78 s</td><td class="num">0.78</td></tr>
+        <tr><td><code>gemma4:e4b-mlx</code> (Ollama, structured JSON)</td><td>Apple M4 Pro, 48 GB</td><td class="num">1200</td><td class="num">0.75 s</td><td class="num">0.76</td></tr>
         <tr><td>autotrust/JEV-9B (MLX)</td><td>Apple M4 Pro</td><td class="num">500</td><td class="num">1.5 s</td><td class="num">0.85</td></tr>
+        <tr><td><code>gemma4:e4b</code> (Ollama GGUF, 100% GPU)</td><td>RTX 3080 10 GB</td><td class="num">500</td><td class="num">0.62 s</td><td class="num">0.81</td></tr>
+        <tr><td><code>gemma4:e4b</code> (Ollama GGUF, 100% GPU)</td><td>RTX 3080 10 GB</td><td class="num">1200</td><td class="num">0.64 s</td><td class="num">0.78</td></tr>
         <tr><td>Open-Jev-2B (PyTorch, batch 16, no conv kernel)</td><td>RTX 3080 10 GB</td><td class="num">500</td><td class="num">0.32 s</td><td class="num">0.87</td></tr>
         <tr class="best"><td>Open-Jev-2B (+ causal-conv1d CUDA kernel)</td><td>RTX 3080</td><td class="num">500</td><td class="num">0.24 s</td><td class="num">0.87</td></tr>
         <tr><td>Open-Jev-2B (+ causal-conv1d)</td><td>RTX 3080</td><td class="num">1200</td><td class="num">0.41 s</td><td class="num">0.885</td></tr>
@@ -120,23 +125,26 @@
   <p class="caption">155 emails (35 needs-attention, 120 archived), measured 2026-09-29. "Body chars" is how much of each message body the model saw.</p>
 
   <h3>What that looks like in an inbox</h3>
-  <p>AUROC is abstract, so here are two concrete operating points. We took Gemma's yes/no answer as-is and put Open-Jev-2B's threshold at 0.3:</p>
-  <div class="duel">
-    <div class="duel-card">
-      <h3>gemma4:e4b</h3>
-      <div class="big">24 / 35</div>
-      <p>needs-attention emails caught, with <strong>21 / 120</strong> false alarms</p>
-    </div>
-    <div class="duel-card good">
-      <h3>Open-Jev-2B · threshold 0.3</h3>
-      <div class="big">29 / 35</div>
-      <p>needs-attention emails caught, with <strong>22 / 120</strong> false alarms</p>
-    </div>
+  <p>AUROC is abstract, so here are concrete operating points. We took each Gemma run's yes/no answer as-is and put Open-Jev-2B's threshold at 0.3:</p>
+  <div class="table-scroll">
+    <table class="data compact">
+      <thead>
+        <tr><th>Model · setup</th><th class="num">Caught</th><th class="num">False alarms</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>gemma4:e4b-mlx</code> · M4 Pro · 500</td><td class="num">24</td><td class="num">21</td></tr>
+        <tr><td><code>gemma4:e4b-mlx</code> · M4 Pro · 1200</td><td class="num">24</td><td class="num">22</td></tr>
+        <tr><td><code>gemma4:e4b</code> · RTX 3080 · 500</td><td class="num">25</td><td class="num">16</td></tr>
+        <tr><td><code>gemma4:e4b</code> · RTX 3080 · 1200</td><td class="num">23</td><td class="num">13</td></tr>
+        <tr class="best"><td>Open-Jev-2B · RTX 3080 · 500 · threshold 0.3</td><td class="num">29</td><td class="num">22</td></tr>
+      </tbody>
+    </table>
   </div>
-  <p>With about the same amount of noise, Open-Jev-2B surfaced five more of the emails that mattered. Because Open-Jev-2B returns a probability rather than a bare yes/no, 0.3 is a choice rather than a fixed property of the model: a lower cut-off catches more, a higher one raises fewer false alarms.</p>
+  <p class="caption">Same 155-email test. Caught is out of 35 needs-attention emails; false alarms are out of 120 archived ones.</p>
+  <p>Open-Jev-2B surfaced four to six more of the emails that mattered than any Gemma run. On the GPU, Gemma raised fewer false alarms (13–16 against 22), so this is a trade-off, not a clean sweep. Because Open-Jev-2B returns a probability rather than a bare yes/no, 0.3 is a choice rather than a fixed property of the model: a lower cut-off catches more, a higher one raises fewer false alarms.</p>
 
   <h2>Speed, honestly</h2>
-  <p>The headline comparison (0.24 s on the RTX 3080 against 0.78 s on the Mac) uses two different machines. An RTX 3080 and an M4 Pro are very different hardware, so that ratio isn't a model-vs-model result. Here are the comparisons that hold one variable fixed:</p>
+  <p>It's tempting to compare Open-Jev-2B on the RTX 3080 (0.24 s) with Gemma on the Mac (0.78 s), but those are different machines, so that ratio isn't a model-vs-model result. Here are the comparisons that keep the hardware and input the same:</p>
 
   <div class="table-scroll">
     <table class="data compact">
@@ -144,32 +152,50 @@
         <tr><th>Setup</th><th class="num">Gemma e4b</th><th class="num">Jev</th></tr>
       </thead>
       <tbody>
+        <tr class="best">
+          <td>RTX 3080, 500 chars</td>
+          <td class="num">0.62 s · 0.81</td>
+          <td class="num">0.24 s · 0.87<span class="sub">Open-Jev-2B · ≈2.6× faster</span></td>
+        </tr>
+        <tr>
+          <td>RTX 3080, 1200 chars</td>
+          <td class="num">0.64 s · 0.78</td>
+          <td class="num">0.41 s · 0.885<span class="sub">Open-Jev-2B · ≈1.6× faster</span></td>
+        </tr>
         <tr>
           <td>Apple M4 Pro, 500 chars</td>
           <td class="num">0.78 s · 0.78</td>
-          <td class="num">1.5 s · 0.85<span class="sub">JEV-9B (MLX)</span></td>
-        </tr>
-        <tr>
-          <td>RTX 3080, 500 chars</td>
-          <!-- TODO(numbers): same-hardware gemma4:e4b on the RTX 3080 (time/email · AUROC) -->
-          <td class="num"><span class="pending">measuring</span></td>
-          <td class="num">0.24 s · 0.87<span class="sub">Open-Jev-2B</span></td>
-        </tr>
-        <tr>
-          <td>1200 chars of body</td>
-          <!-- TODO(numbers): gemma4:e4b-mlx at 1200 chars on the M4 Pro (time/email · AUROC) -->
-          <td class="num"><span class="pending">measuring</span><span class="sub">M4 Pro</span></td>
-          <td class="num">0.41 s · 0.885<span class="sub">Open-Jev-2B · RTX 3080</span></td>
+          <td class="num">1.5 s · 0.85<span class="sub">JEV-9B (MLX) · slower</span></td>
         </tr>
       </tbody>
     </table>
   </div>
   <p class="caption">Cells show time per email · AUROC on the same 155-email test.</p>
+  <p>Gemma's time barely changes with input length here (0.62 s to 0.64 s), while Open-Jev-2B's grows (0.24 s to 0.41 s). The speed gap narrows with longer inputs, but Jev stays ahead. Its AUROC held up with more text (0.87 to 0.885), while Gemma's slipped (0.81 to 0.78).</p>
 
   <h3>End-to-end: <code>higgs classify</code> on a real mailbox</h3>
-  <p>The test above sends each model a trimmed prompt. A real <code>higgs classify</code> run does more work. During the day before these measurements, the production run with <code>gemma4:e4b-mlx</code> sustained about <strong>2.2 s per email</strong>: roughly 5,800 emails in about 3 hours with 2 workers, sending the full 3,000-character snippet and generating a JSON rationale for each message. For context, the larger local MLX models we tried were worse. The 35B and 31B models were unusable for classify because requests timed out, and <code>gemma4:12b-mlx</code> took about 40 s per email.</p>
-  <!-- TODO(numbers): end-to-end `higgs classify` throughput with PM_CLASSIFY_BACKEND=jev vs gemma (emails/s or s/email, workers, snippet size, hardware). Replace the paragraph below. -->
-  <p><span class="pending">measuring</span> End-to-end throughput for <code>higgs classify</code> with the Jev backend, on the same mailbox, is still being measured. We'll add it here.</p>
+  <p>The scoring test sends each model a trimmed prompt. A real run also fetches over IMAP, parses, and writes results. We ran <code>higgs classify INBOX --no-state</code> on 59 messages from the maintainer's inbox. Wall-clock time includes the IMAP fetch, and every run finished with 0 errors.</p>
+  <div class="table-scroll">
+    <table class="data compact">
+      <thead>
+        <tr><th>Setup</th><th class="num">Workers</th><th class="num">Total</th><th class="num">Per email</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>gemma4:e4b-mlx</code> · M4 Pro<span class="sub">the setup higgs was using</span></td><td class="num">2</td><td class="num">109.8 s</td><td class="num">1.86 s</td></tr>
+        <tr><td>Open-Jev-2B · RTX 3080</td><td class="num">1</td><td class="num">28.6 s</td><td class="num">0.48 s</td></tr>
+        <tr class="best"><td>Open-Jev-2B · RTX 3080</td><td class="num">4</td><td class="num">20.4–21.1&nbsp;s</td><td class="num">0.35 s</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="caption">59 messages, <code>--no-state</code>. Total is wall-clock time including the IMAP fetch. The Gemma and Jev rows ran on different machines.</p>
+  <p>That's about <strong>5.3× faster end to end</strong>. Again, it compares the Mac setup higgs was actually using with Jev on a GPU box, so part of the gain is the hardware. The Jev server scores one request at a time, but 4 workers overlap the network round trips, which is where 28.6 s drops to 20.4 s.</p>
+  <p>Quality on the same 59 messages (34 personal, 25 automated):</p>
+  <ul>
+    <li><strong>Bulk flag:</strong> Jev marked 18 of 25 automated messages as bulk, where Gemma marked 14.</li>
+    <li><strong>False bulk flags:</strong> Jev flagged 1 of 34 personal messages, a Google Calendar invitation (which is itself machine-sent). Gemma flagged none.</li>
+    <li><strong>Category labels:</strong> on 42 messages with an unambiguous category, both got the top label right 27 times. Jev's labels are on par with Gemma's, not better.</li>
+  </ul>
+  <p>For longer-run context: the day before, a production run with <code>gemma4:e4b-mlx</code> sustained about 2.2 s per email (roughly 5,800 emails in about 3 hours with 2 workers). That run sent the full 3,000-character snippet and generated a JSON rationale for each message. The larger local MLX models we tried were worse. The 35B and 31B models were unusable for classify because requests timed out, and <code>gemma4:12b-mlx</code> took about 40 s per email.</p>
 
   <h2>Why not the 9B model on the Mac?</h2>
   <p>autotrust/JEV-9B (Apache-2.0, built on Qwen3.5-9B) runs on Apple Silicon through MLX once its LoRA adapter is merged. It's a real option if a Mac is the only machine you have: on the M4 Pro it ranked better than Gemma (0.85 vs. 0.78 AUROC). It was also about twice as slow (1.5 s vs. 0.78 s per email) and no more accurate than Open-Jev-2B. So the setup we recommend is <strong>Open-Jev-2B on an NVIDIA GPU</strong>.</p>
@@ -190,15 +216,16 @@
 
 <span class="c"># Preview first, apply when it looks right</span>
 <span class="p">$ higgs classify --dry-run --limit 20 INBOX</span></pre>
-  <p>If you install the optional <code>causal-conv1d</code> CUDA kernel in the server's environment, you get the faster row in the table (0.32 s down to 0.24 s per email on our 3080).</p>
+  <p>higgs sends the Jev server the first 1,200 characters of each message body. If you install the optional <code>causal-conv1d</code> CUDA kernel in the server's environment, scoring gets faster (0.32 s down to 0.24 s per email on our 3080, at 500 characters).</p>
   <div class="note"><p><strong>Privacy note.</strong> By default the Jev server and higgs share a machine and talk over 127.0.0.1, so no mail leaves the box. If your GPU is in a different machine, <code>PM_JEV_BASE_URL</code> can point at it, but your mail will then cross your own network to get there. Keep that link on hardware and a network you control.</p></div>
 
   <h2>What we didn't measure</h2>
   <ul>
-    <li><strong>Other inboxes.</strong> This is one person's mail, 155 messages. It's a small real-world test, not a benchmark suite, and your mix of newsletters, receipts, and human mail will differ.</li>
+    <li><strong>Other inboxes.</strong> This is one person's mail: 155 messages for the scoring test and 59 for the end-to-end run. It's a small real-world test, not a benchmark suite, and your mix of newsletters, receipts, and human mail will differ.</li>
+    <li><strong>Statistical significance.</strong> With samples this small, a few emails either way can move these numbers.</li>
     <li><strong>Energy or cost.</strong> We didn't measure power draw, so we're making no efficiency claims.</li>
-    <li><strong>Per-category accuracy.</strong> The test covers the needs-attention question, not accuracy for each of the 11 labels.</li>
-    <li><strong>Other GPUs and Macs.</strong> The only hardware we measured was one RTX 3080 (10 GB) and one M4 Pro (48 GB).</li>
+    <li><strong>Per-category accuracy.</strong> We only checked the top label on 42 unambiguous messages, not accuracy for each of the 11 labels.</li>
+    <li><strong>Other GPUs and Macs.</strong> The only hardware we measured was one RTX 3080 (10 GB) and one M4 Pro (48 GB). We didn't run Open-Jev-2B on the Mac or end to end with Gemma on the 3080.</li>
   </ul>
 
   <h2>Credits</h2>
