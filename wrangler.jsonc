@@ -18,6 +18,12 @@
     "not_found_handling": "404-page",
     "run_worker_first": true
   },
+  // Version Preview URLs (<version>-higgscli.<subdomain>.workers.dev and
+  // `--preview-alias` URLs) for `wrangler versions upload`, so site changes
+  // can be reviewed before they reach higgscli.com. The workers.dev route
+  // itself stays off (routes are custom domains, so workers_dev defaults to
+  // false). Takes effect on the next `wrangler deploy`.
+  "preview_urls": true,
   "observability": {
     "enabled": true
   },

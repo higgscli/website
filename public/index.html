@@ -29,7 +29,7 @@
   "softwareVersion": "1.3.1",
   "license": "https://www.apache.org/licenses/LICENSE-2.0",
   "description": "A private, local-first AI CLI for Proton Mail. Classification, search, summarization, and Q&A run entirely on the user's machine through Proton Mail Bridge and a local model — Ollama by default, or any self-hosted OpenAI-compatible server such as llama.cpp llama-server — no cloud inference, no cloud API keys, no telemetry, credentials kept in the OS keyring. Agent-first by design: schema manifest for tool use, NDJSON on stdout, typed error envelopes, and a stable exit-code enum, with 30+ composable commands.",
-  "keywords": "Proton Mail, privacy, local-first AI, local LLM, CLI, AI agent, NDJSON, schema manifest, email classifier, Ollama, llama.cpp, OpenAI-compatible API, IMAP, Claude, Codex, agent tools, no telemetry",
+  "keywords": "Proton Mail, privacy, local-first AI, local LLM, CLI, AI agent, NDJSON, schema manifest, email classifier, Ollama, llama.cpp, OpenAI-compatible API, Jev decision model, Open-Jev, IMAP, Claude, Codex, agent tools, no telemetry",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "Akeem Jenkins", "url": "https://akeemjenkins.com" },
   "isAccessibleForFree": true
@@ -165,6 +165,28 @@
     color: var(--accent); background: var(--accent-soft);
     border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
     padding: 6px 14px; border-radius: 999px; margin-bottom: 28px;
+  }
+  /* announcement splash — links to the latest blog post */
+  .announce {
+    display: flex; align-items: center; gap: 14px; text-align: left; text-decoration: none;
+    max-width: 680px; margin: 0 auto 30px; padding: 12px 16px 12px 12px;
+    background: color-mix(in srgb, var(--card) 85%, transparent); color: var(--ink-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: var(--radius);
+    box-shadow: 0 10px 34px -18px color-mix(in srgb, var(--accent) 45%, transparent);
+    transition: border-color .15s, transform .12s ease;
+  }
+  .announce:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .announce .tag {
+    flex-shrink: 0; font-family: var(--mono); font-size: 11.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--on-accent); background: var(--accent); padding: 4px 10px; border-radius: 999px;
+  }
+  .announce .msg { font-size: 14.5px; line-height: 1.45; }
+  .announce .msg strong { color: var(--ink); font-weight: 600; }
+  .announce .msg code { font-family: var(--mono); font-size: .92em; }
+  .announce .go { margin-left: auto; flex-shrink: 0; color: var(--accent-deep); font-weight: 600; font-size: 14px; white-space: nowrap; }
+  @media (max-width: 560px) {
+    .announce { flex-wrap: wrap; gap: 8px 12px; }
+    .announce .go { margin-left: 0; }
   }
   .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
   h1 {
@@ -346,6 +368,7 @@
       <a class="hide-sm" href="#contract">Agent contract</a>
       <a class="hide-sm" href="#compose">Pipes</a>
       <a class="hide-sm" href="#commands">Commands</a>
+      <a class="hide-sm" href="/blog/">Blog</a>
       <a class="hide-sm" href="https://github.com/higgscli/higgs">GitHub</a>
       <a class="nav-cta" href="#install">Install</a>
     </nav>
@@ -354,6 +377,12 @@
 
 <div class="hero">
   <div class="wrap">
+    <!-- TODO(release): optionally add the higgs version that ships Jev support, e.g. "New in vX.Y" -->
+    <a class="announce" href="/blog/jev-classification/">
+      <span class="tag">New</span>
+      <span class="msg"><strong>Jev decision models for <code>higgs classify</code>.</strong> Calibrated probabilities instead of generated JSON, and better ranking on 155 real emails. Still on hardware you own.</span>
+      <span class="go">Read the benchmarks →</span>
+    </a>
     <div class="eyebrow"><span class="pulse"></span> v1.3.1 · open source · zero telemetry · 100% localhost</div>
     <h1>AI for your inbox. <span class="grad">Nothing leaves your machine.</span></h1>
     <p class="lede">You chose Proton Mail because your email <em>belongs to you</em> — not to advertisers, data brokers, or model providers. higgs keeps it that way: a local-first AI CLI that classifies, searches, and answers questions about your mail entirely on your own hardware, through Proton Mail Bridge and a local model you host — Ollama by default, or any OpenAI-compatible server like llama.cpp. No cloud inference. No cloud API keys. No telemetry.</p>
@@ -398,7 +427,7 @@
       <div class="card">
         <div class="glyph">local-first AI</div>
         <h3>The model comes to your mail</h3>
-        <p>Classification, search, summaries, and Q&amp;A run on a model you host — Gemma 4 via Ollama by default, or any OpenAI-compatible server you run yourself, like llama.cpp <code>llama-server</code> (<code>PM_LLM_BACKEND=openai</code>). No cloud inference, no cloud API keys, no third party ever sees a subject line.</p>
+        <p>Classification, search, summaries, and Q&amp;A run on a model you host — Gemma 4 via Ollama by default, or any OpenAI-compatible server you run yourself, like llama.cpp <code>llama-server</code> (<code>PM_LLM_BACKEND=openai</code>). For triage, <code>classify</code> can also use a self-hosted <a href="/blog/jev-classification/" style="color:var(--accent-deep)">Jev decision model</a> (<code>PM_CLASSIFY_BACKEND=jev</code>). No cloud inference, no cloud API keys, no third party ever sees a subject line.</p>
       </div>
       <div class="card">
         <div class="glyph">keyring</div>
@@ -556,7 +585,7 @@
       <div class="cmd-group">
         <h3>Understand (local AI)</h3>
         <ul>
-          <li><code>classify</code><span>label with your local LLM</span></li>
+          <li><code>classify</code><span>label with your local LLM or a Jev decision model</span></li>
           <li><code>ask</code><span>agentic Q&amp;A over the mailbox</span></li>
           <li><code>summarize</code><span>NDJSON summaries</span></li>
           <li><code>digest</code><span>structured recent-mail digest</span></li>
@@ -637,6 +666,9 @@ cd higgs &amp;&amp; make build</pre>
 <span class="c"># Or any OpenAI-compatible server you host, e.g. llama.cpp llama-server</span>
 <span class="p">$ export PM_LLM_BACKEND=<span class="s">"openai"</span>  PM_OPENAI_BASE_URL=<span class="s">"http://localhost:8080"</span>  PM_OPENAI_MODEL=<span class="s">"qwen3.6-35b-a3b"</span></span>
 
+<span class="c"># Optional: route classify through a self-hosted Jev decision server (Open-Jev-2B)</span>
+<span class="p">$ export PM_CLASSIFY_BACKEND=<span class="s">"jev"</span>  PM_JEV_BASE_URL=<span class="s">"http://127.0.0.1:8791"</span></span>
+
 <span class="c"># Dry-run against your inbox — preview, apply only when it looks right</span>
 <span class="p">$ higgs classify --dry-run --limit 20 INBOX</span>
 <span class="p">$ higgs classify --apply --workers 4 INBOX</span></pre>
@@ -673,6 +705,7 @@ cd higgs &amp;&amp; make build</pre>
     <div class="row">
       <div><strong style="color:var(--ink)">higgs</strong> — private, local-first AI for Proton Mail</div>
       <div class="links">
+        <a href="/blog/">Blog</a>
         <a href="https://github.com/higgscli/higgs">GitHub</a>
         <a href="https://github.com/higgscli/higgs/releases">Releases</a>
         <a href="https://github.com/higgscli/homebrew-higgs">Homebrew tap</a>

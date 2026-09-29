@@ -43,7 +43,7 @@ Read & search:
 - watch — stream mailbox change events as NDJSON until cancelled
 
 Understand (local AI via Ollama or a self-hosted OpenAI-compatible server):
-- classify — classify messages and emit NDJSON results; --dry-run to preview, --apply to write labels
+- classify — classify messages and emit NDJSON results; --dry-run to preview, --apply to write labels (optionally via a self-hosted Jev decision model, PM_CLASSIFY_BACKEND=jev)
 - ask — agentic Q&A over the mailbox using read-only tools
 - summarize — summarize messages, stream NDJSON results
 - digest — produce a structured JSON digest of recent messages
@@ -138,10 +138,37 @@ LLM backend: higgs supports two local backends, selected with PM_LLM_BACKEND (de
 
 Reasoning models (e.g. Qwen3) are handled automatically: thinking is disabled for structured commands (classify, extract, digest) and enabled for ask and summarize; structured output uses response_format json_schema.
 
+Classification backend (optional): `higgs classify` can be routed through a self-hosted Jev decision server instead of the chat backend. Generative commands (summarize, digest, ask, extract) keep using PM_LLM_BACKEND unchanged; Ollama/Gemma remains the default for classify too.
+
+    export PM_CLASSIFY_BACKEND="jev"
+    export PM_JEV_BASE_URL="http://127.0.0.1:8791"       # default
+
+A Jev model is a decision model: instead of generating text, it scores caller-supplied options in a single forward pass and returns calibrated probabilities for typed questions (yes/no, multiple choice, 0–5 score). higgs asks it two questions per email — is this a newsletter / mailing list / marketing / bulk email (yes/no), and which of the 11 taxonomy categories (choice) — and the confidence comes straight from the probabilities, so there is no JSON to mis-parse and no generation step to time out. The server is the open-source Open-Jev loader (https://github.com/Zefan-Cai/Open-Jev, MIT) serving Open-Jev-2B (https://huggingface.co/gionebeats/Open-Jev-2B, Apache-2.0 LoRA adapter + scalar decision head on Qwen/Qwen3.5-2B), recommended on an NVIDIA GPU:
+
+    python -m jev.server --checkpoint ./checkpoints/open-jev-2b/package/checkpoint \
+      --device cuda:0 --max-length 4096 --batch-size 16 --no-prefix-cache \
+      --host 127.0.0.1 --port 8791
+
+Everything still runs on hardware the user owns. If PM_JEV_BASE_URL points at a different machine, mail crosses the user's own network to reach it.
+
 Quickstart:
 
     higgs classify --dry-run --limit 20 INBOX   # preview
     higgs classify --apply --workers 4 INBOX    # write labels
+
+## Blog: Jev decision models vs. local Gemma (https://higgscli.com/blog/jev-classification/)
+
+Small real-world test, not a benchmark suite: 155 emails from the maintainer's own Proton inbox (35 kept as needing personal attention, 120 random archived), measured 2026-09-29. Every model answered the same question: "Does this email need the recipient's personal attention (reply, decision, deadline, action) — not automated or bulk mail?" AUROC measures how well the model's probability ranks needs-attention mail above the rest (0.5 = coin flip, 1.0 = perfect).
+
+    Model                                            Hardware             Body chars  Time/email  AUROC
+    gemma4:e4b-mlx (Ollama, structured JSON)         Apple M4 Pro, 48 GB  500         0.78 s      0.78
+    autotrust/JEV-9B (MLX)                           Apple M4 Pro         500         1.5 s       0.85
+    Open-Jev-2B (PyTorch, batch 16, no conv kernel)  RTX 3080 10 GB       500         0.32 s      0.87
+    Open-Jev-2B (+ causal-conv1d CUDA kernel)        RTX 3080             500         0.24 s      0.87
+    Open-Jev-2B (+ causal-conv1d)                    RTX 3080             1200        0.41 s      0.885
+
+Operating points: gemma's yes/no answer caught 24/35 needs-attention emails with 21/120 false alarms; Open-Jev-2B at a 0.3 threshold caught 29/35 with 22/120 false alarms. The headline speed comparison (0.24 s vs 0.78 s) mixes hardware (RTX 3080 vs M4 Pro); on the same Mac, JEV-9B was slower than gemma (1.5 s vs 0.78 s) but ranked better (0.85 vs 0.78). In production the day before, higgs classify with gemma4:e4b-mlx sustained about 2.2 s/email end to end (about 5,800 emails in about 3 hours, 2 workers, full 3,000-character snippet plus a generated JSON rationale). Not measured: other inboxes, energy use, per-category accuracy, other hardware. Jev was originally a closed model from TypeSafe AI; Open-Jev and autotrust/JEV-9B are independent open reproductions. higgs is not affiliated with any of them.
+<!-- TODO(numbers): add same-hardware gemma4:e4b on the RTX 3080, gemma at 1200 chars on the M4 Pro, and end-to-end higgs classify throughput with PM_CLASSIFY_BACKEND=jev. -->
 
 ## Links
 
@@ -149,4 +176,5 @@ Quickstart:
 - Source & docs: https://github.com/higgscli/higgs
 - Releases: https://github.com/higgscli/higgs/releases
 - Homebrew tap: https://github.com/higgscli/homebrew-higgs
+- Blog: https://higgscli.com/blog/
 - Author: Akeem Jenkins — https://akeemjenkins.com
