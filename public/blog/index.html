@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)">
+<title>Blog — higgs, private local-first AI for Proton Mail</title>
+<meta name="description" content="Notes from building higgs, the private, local-first AI CLI for Proton Mail: models, measurements, and design decisions. Everything runs on hardware you own.">
+<meta property="og:title" content="higgs blog">
+<meta property="og:description" content="Notes from building higgs, the private, local-first AI CLI for Proton Mail.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://higgscli.com/blog/">
+<link rel="canonical" href="https://higgscli.com/blog/">
+<link rel="alternate" type="text/plain" title="higgs llms.txt" href="/llms.txt">
+<link rel="alternate" type="text/markdown" title="higgs (full text for LLMs)" href="/llms-full.txt">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "higgs blog",
+  "url": "https://higgscli.com/blog/",
+  "description": "Notes from building higgs, the private, local-first AI CLI for Proton Mail.",
+  "author": { "@type": "Person", "name": "Akeem Jenkins", "url": "https://akeemjenkins.com" },
+  "blogPost": [
+    {
+      "@type": "BlogPosting",
+      "headline": "Jev decision models in higgs classify: benchmarks vs. local Gemma",
+      "url": "https://higgscli.com/blog/jev-classification/",
+      "datePublished": "2026-09-29"
+    }
+  ]
+}
+</script>
+<!-- DataFast analytics -->
+<script id="datafast-queue">
+  window.datafast = window.datafast || function () {
+    (window.datafast.q = window.datafast.q || []).push(arguments);
+  };
+</script>
+<script defer data-website-id="dfid_XvCsB2MzUSfFjv6y31NmM" data-domain="higgscli.com" src="https://datafa.st/js/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%236d5bd0' stroke-width='6'%3E%3Cellipse cx='50' cy='50' rx='40' ry='16' transform='rotate(30 50 50)'/%3E%3Cellipse cx='50' cy='50' rx='40' ry='16' transform='rotate(-30 50 50)'/%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='9' fill='%23f7f5f1'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/blog/blog.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/">
+      <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#6d5bd0" stroke-width="7"><ellipse cx="50" cy="50" rx="42" ry="17" transform="rotate(30 50 50)"/><ellipse cx="50" cy="50" rx="42" ry="17" transform="rotate(-30 50 50)"/></g><circle cx="50" cy="50" r="10" fill="#f7f5f1"/></svg>
+      higgs<span class="tld">cli.com</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="hide-sm" href="/#private">Privacy</a>
+      <a class="hide-sm" href="/#commands">Commands</a>
+      <a href="/blog/" aria-current="page">Blog</a>
+      <a class="hide-sm" href="https://github.com/higgscli/higgs">GitHub</a>
+      <a class="nav-cta" href="/#install">Install</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="wrap narrow">
+    <div class="kicker">Blog</div>
+    <h1>Notes from a <span class="grad">local-first</span> inbox</h1>
+    <p class="dek">Models, measurements, and design decisions behind higgs. We test on real mail, on hardware we own, and say what we didn't measure.</p>
+  </div>
+</div>
+
+<div class="wrap narrow">
+  <ul class="post-list">
+    <li>
+      <a class="post-card" href="/blog/jev-classification/">
+        <div class="meta"><time datetime="2026-09-29">2026-09-29</time> · Classification</div>
+        <h2>Jev decision models: faster triage, still on your hardware</h2>
+        <p><code>higgs classify</code> can now use a local Jev decision model. On the same GPU, Open-Jev-2B scored emails about 2.6× faster than gemma4:e4b and ranked them better (AUROC 0.87 vs 0.81). It also caught more bulk mail, and its category labels were on par. We cover the benchmark, the hardware caveats, and the setup.</p>
+        <span class="more">Read the post →</span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <p class="byline">An <a href="https://akeemjenkins.com">Akeem Jenkins</a> project</p>
+    <nav class="siblings" aria-label="More tools by Akeem">
+      <span>More tools:</span>
+      <a href="/">higgs</a>
+      <a href="https://ouracli.com">oura</a>
+      <a href="https://useokf.com">okf</a>
+    </nav>
+  </div>
+  <div class="wrap footer-meta">
+    <div class="row">
+      <div><strong style="color:var(--ink)">higgs</strong> — private, local-first AI for Proton Mail</div>
+      <div class="links">
+        <a href="/blog/">Blog</a>
+        <a href="https://github.com/higgscli/higgs">GitHub</a>
+        <a href="https://github.com/higgscli/higgs/releases">Releases</a>
+        <a href="https://github.com/higgscli/homebrew-higgs">Homebrew tap</a>
+        <a href="/llms.txt">llms.txt</a>
+        <a href="https://github.com/higgscli/higgs/blob/main/LICENSE">Apache-2.0</a>
+      </div>
+    </div>
+    <div class="disclaimer">
+      Unofficial project. higgs is an independent, community-built CLI for Proton Mail. It is not affiliated with, endorsed by, or sponsored by Proton AG. "Proton", "Proton Mail", and related marks are trademarks of Proton AG; this project uses them only to describe interoperability. Built by <a href="https://akeemjenkins.com">Akeem Jenkins</a>.
+    </div>
+  </div>
+</footer>
+
+<script>
+  // DataFast goals: outbound clicks to the GitHub repo and the author's site.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a || !a.href) return;
+    if (a.href.indexOf('github.com') !== -1) {
+      window.datafast('visit_github');
+    } else if (a.href.indexOf('akeemjenkins.com') !== -1) {
+      window.datafast('visit_akeemjenkins');
+    }
+  });
+</script>
+
+</body>
+</html>
